@@ -394,47 +394,55 @@ var  xDown = null;
 // biome-ignore lint/style/noVar: <explanation>
 var  yDown = null;                                                        
 
-function handleTouchStart(evt) {                                         
-    xDown = evt.touches[0].clientX;                                      
-    yDown = evt.touches[0].clientY;                                      
-};                                                
-
 function handleTouchMove(evt) {
-    if (!xDown || !yDown) {
-        return;
-    }
+  if (!xDown || !yDown) {
+      return;
+  }
 
-    // biome-ignore lint/style/noVar: <explanation>
+  // biome-ignore lint/style/noVar: <explanation>
 var  xUp = evt.touches[0].clientX;                                    
-    // biome-ignore lint/style/noVar: <explanation>
-    var  yUp = evt.touches[0].clientY;
+  // biome-ignore lint/style/noVar: <explanation>
+var  yUp = evt.touches[0].clientY;
 
-    // biome-ignore lint/style/noVar: <explanation>
+  // biome-ignore lint/style/noVar: <explanation>
 var  xDiff = xDown - xUp;
-    // biome-ignore lint/style/noVar: <explanation>
+  // biome-ignore lint/style/noVar: <explanation>
 var  yDiff = yDown - yUp;
 
-    if (Math.abs(xDiff) > Math.abs(yDiff)) {
-        if (xDiff > 0) {
-            /* izquierda */
-            moveTetromino("left");
-        } else {
-            /* derecha */
-            moveTetromino("right");
-        }                       
-    } else {
-        if (yDiff > 0) {
-            /* arriba */
-        } else { 
-            /* abajo */
-            moveTetromino("down");
-        }                                                                 
-    }
-    /* reset values */
-    xDown = null;
-    yDown = null;                                             
-};
+  // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
+if  (evt.touches.length == 2) { // Si hay dos dedos en la pantalla
+      // biome-ignore lint/style/noVar: <explanation>
+// biome-ignore lint/correctness/noInnerDeclarations: <explanation>
+var    xDownSecond = evt.touches[1].clientX; // Segundo dedo
+      // biome-ignore lint/style/noVar: <explanation>
+// biome-ignore lint/correctness/noInnerDeclarations: <explanation>
+var    yDownSecond = evt.touches[1].clientY;
 
+      // biome-ignore lint/correctness/noInnerDeclarations: <explanation>
+// biome-ignore lint/style/noVar: <explanation>
+var    angle = Math.atan2(yDown - yDownSecond, xDown - xDownSecond) * 180 / Math.PI;
+
+      if (angle > 45 && angle < 135) {
+          rotateTetromino("clockwise"); // Rotar en sentido horario
+      } else if (angle < -45 && angle > -135) {
+          rotateTetromino("counterclockwise"); // Rotar en sentido antihorario
+      }
+  } else if (Math.abs(xDiff) > Math.abs(yDiff)) { // Deslizamiento horizontal
+      if (xDiff > 0) {
+          moveTetromino("left"); // Izquierda
+      } else {
+          moveTetromino("right"); // Derecha
+      }                       
+  } else { // Deslizamiento vertical
+      if (yDiff > 0) {
+          // Arriba
+      } else { 
+          moveTetromino("down"); // Abajo
+      }                                                                 
+  }
+  xDown = null;
+  yDown = null;                                             
+};
 
 // sound init
 document.body.addEventListener("click", () => {
