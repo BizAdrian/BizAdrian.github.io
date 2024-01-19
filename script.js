@@ -1,13 +1,21 @@
 // Game board setup
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
+let piece;
 const board = [];
 const bgn = document.createElement("audio");
 bgn.setAttribute("src", "./assets/Soundtracks/Tetris-theme.mp3");
 const clearLineSound = document.createElement("audio");
 clearLineSound.setAttribute("src", "./assets/Soundtracks/Clear-line.mp3");
+const easterEggSound = document.createElement("audio");
+easterEggSound.setAttribute("src", "./assets/Soundtracks/Tetris-Rap.mp3");
 const gameOverSound = document.createElement("audio");
 let rotatedShape;
+let isPaused = false;
+let  isEasterEggPlaying = false;
+// biome-ignore lint/style/useConst: <explanation>
+// biome-ignore lint/style/noVar: <explanation>
+var    volumeIcon = document.querySelector('mySVG');
 
 bgn.loop = true;
 bgn.volume = 0.5;
@@ -15,22 +23,42 @@ bgn.volume = 0.5;
 clearLineSound.loop = false;
 clearLineSound.volume = 0.5;
 
+easterEggSound.loop = false;
+easterEggSound.volume = 0.5;
+
+
+
+function changeIcon(icon) {
+  if (bgn.paused) {
+      bgn.play();
+      icon.outerHTML = '<svg id="mySVG" xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-volume" width="24" height="24" viewBox="0 0 24 24" stroke-width="0.5" stroke="#000000" fill="#ffffff" stroke-linecap="round" stroke-linejoin="round" onclick="changeIcon(this)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 8a5 5 0 0 1 0 8" /><path d="M17.7 5a9 9 0 0 1 0 14" /><path d="M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a.8 .8 0 0 1 1.5 .5v14a.8 .8 0 0 1 -1.5 .5l-3.5 -4.5" /></svg>';
+  } else {
+      bgn.pause();
+      icon.outerHTML = '<svg id="mySVG" xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-volume-off" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" onclick="changeIcon(this)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 8a5 5 0 0 1 1.912 4.934m-1.377 2.602a5 5 0 0 1 -.535 .464" /><path d="M17.7 5a9 9 0 0 1 2.362 11.086m-1.676 2.299a9 9 0 0 1 -.686 .615" /><path d="M9.069 5.054l.431 -.554a.8 .8 0 0 1 1.5 .5v2m0 4v8a.8 .8 0 0 1 -1.5 .5l-3.5 -4.5h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l1.294 -1.664" /><path d="M3 3l18 18" /></svg>';
+  }
+}
+
+
+
+  const logo = document.querySelector('.logo');
+// biome-ignore lint/complexity/useArrowFunction: <explanation>
+logo.addEventListener('click', function() {
+  if (!isEasterEggPlaying) {
+      bgn.pause();
+      easterEggSound.play();
+      isEasterEggPlaying = true;
+  } else {
+      easterEggSound.pause();
+      bgn.play();
+      isEasterEggPlaying = false;
+  }
+});
 
 // biome-ignore lint/complexity/useArrowFunction: <explanation>
-bgn.onloadedmetadata = function() {
-    try {
-      bgn.play();
-    } catch (e) {
-      console.error("La reproducción automática del audio falló", e);
-    }
-  };
-  
-  document.body.appendChild(bgn);
-
-
-  function playClearLineSound() {
-    clearLineSound.play();
-  }
+easterEggSound.addEventListener('ended', function() {
+  bgn.play();
+  isEasterEggPlaying = false;
+});
 
 
 // init board
@@ -193,25 +221,31 @@ function lockTetromino() {
     for (let j = 0; j < currentTetromino.shape[i].length; j++) {
       if (currentTetromino.shape[i][j] !== 0) {
         // biome-ignore lint/style/useConst: <explanation>
-       let  row = currentTetromino.row + i;
+let  row = currentTetromino.row + i;
         // biome-ignore lint/style/useConst: <explanation>
-       let  col = currentTetromino.col + j;
+let  col = currentTetromino.col + j;
         board[row][col] = currentTetromino.color;
+        // Comprueba si alguna parte del tetromino está en la fila 0
+        if (row === 0) {
+          alert('Game Over');
+          restartGame();
+          return;
+        }
       }
     }
   }
 
   // Check if any rows need to be cleared
   // biome-ignore lint/style/useConst: <explanation>
-  let  rowsCleared = clearRows();
+let  rowsCleared = clearRows();
   if (rowsCleared > 0) {
     // updateScore(rowsCleared);
   }
 
   // Create a new tetromino
-  // Current tetromino
   currentTetromino = randomTetromino();
 }
+
 
 function clearRows() {
   let rowsCleared = 0;
@@ -258,8 +292,6 @@ function clearRows() {
           }
         }
       }
-
-      y++;
     }
   }
 
@@ -290,8 +322,11 @@ function rotateTetromino() {
 
 // Move the tetromino
 function moveTetromino(direction) {
+  if (isPaused) return;
+
   let row = currentTetromino.row;
   let col = currentTetromino.col;
+
   if (direction === "left") {
     if (canTetrominoMove(0, -1)) {
       eraseTetromino();
@@ -304,7 +339,6 @@ function moveTetromino(direction) {
     if (canTetrominoMove(0, 1)) {
       eraseTetromino();
       col += 1;
-
       currentTetromino.col = col;
       currentTetromino.row = row;
       drawTetromino();
@@ -350,6 +384,57 @@ function handleKeyPress(event) {
       break;
   }
 }
+
+// Añade escuchadores de eventos táctiles al documento
+document.addEventListener('touchstart', handleTouchStart, false);        
+document.addEventListener('touchmove', handleTouchMove, false);
+
+// biome-ignore lint/style/noVar: <explanation>
+var  xDown = null;                                                        
+// biome-ignore lint/style/noVar: <explanation>
+var  yDown = null;                                                        
+
+function handleTouchStart(evt) {                                         
+    xDown = evt.touches[0].clientX;                                      
+    yDown = evt.touches[0].clientY;                                      
+};                                                
+
+function handleTouchMove(evt) {
+    if (!xDown || !yDown) {
+        return;
+    }
+
+    // biome-ignore lint/style/noVar: <explanation>
+var  xUp = evt.touches[0].clientX;                                    
+    // biome-ignore lint/style/noVar: <explanation>
+    var  yUp = evt.touches[0].clientY;
+
+    // biome-ignore lint/style/noVar: <explanation>
+var  xDiff = xDown - xUp;
+    // biome-ignore lint/style/noVar: <explanation>
+var  yDiff = yDown - yUp;
+
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {
+        if (xDiff > 0) {
+            /* izquierda */
+            moveTetromino("left");
+        } else {
+            /* derecha */
+            moveTetromino("right");
+        }                       
+    } else {
+        if (yDiff > 0) {
+            /* arriba */
+        } else { 
+            /* abajo */
+            moveTetromino("down");
+        }                                                                 
+    }
+    /* reset values */
+    xDown = null;
+    yDown = null;                                             
+};
+
 
 // sound init
 document.body.addEventListener("click", () => {
@@ -436,3 +521,29 @@ function moveGhostTetromino() {
 
   drawGhostTetromino();
 }
+
+
+function togglePause() {
+  isPaused = !isPaused;
+}
+
+function restartGame() {
+  // Limpia el tablero
+  for (let row = 0; row < BOARD_HEIGHT; row++) {
+    for (let col = 0; col < BOARD_WIDTH; col++) {
+      board[row][col] = 0;
+      // biome-ignore lint/style/useConst: <explanation>
+let  block = document.getElementById(`block-${row}-${col}`);
+      if (block) {
+        document.getElementById("game_board").removeChild(block);
+      }
+    }
+  }
+
+  // Crea un nuevo tetromino
+  currentTetromino = randomTetromino();
+
+  // Asegúrate de que el juego no esté en pausa
+  isPaused = false;
+}
+

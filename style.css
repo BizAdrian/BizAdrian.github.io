@@ -12,6 +12,7 @@ body {
     display: block;
     margin: 0 auto 20px;
     width: 150px;
+    cursor: pointer;
   }
   
   #game_board {
@@ -44,3 +45,36 @@ body {
     position: absolute;
     box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.3);
   }
+
+  .icons{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .gg-play-pause svg{
+    width: 40px;
+    height: 40px;
+    border: 2px;
+  }
+
+  .gg-play-pause svg path {
+    stroke: black; /* Esto agrega un borde negro a las rutas del SVG */
+    stroke-width: 0.5; /* Esto controla el grosor del borde */
+  }
+
+  .gg-play-pause{
+    background: none;
+    border: none;
+    color: white;
+    margin-top: 350px;
+    cursor: pointer;
+  }
+
+.icon-tabler{
+  margin-top: 200px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
